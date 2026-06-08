@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
 import type { OnlineModeId } from "../constants/labels";
-import { createMultiplayerSocket } from "../config";
+import { createMultiplayerSocket, MULTIPLAYER_AVAILABLE } from "../config";
 import type {
   CountdownPayload,
   ExhibitionJoinedPayload,
@@ -299,6 +299,8 @@ export function useAppController() {
 
   const startOnline = useCallback(
     (mode: OnlineModeId) => {
+      if (!MULTIPLAYER_AVAILABLE) return;
+
       stopPoll();
       stopSocket();
       setMatchMode(mode);
@@ -326,6 +328,8 @@ export function useAppController() {
   );
 
   const joinFriend = useCallback(() => {
+    if (!MULTIPLAYER_AVAILABLE) return;
+
     if (!/^\d{4}$/.test(friendPassword.trim())) {
       setMessage("4桁の数字を入力してください");
       return;

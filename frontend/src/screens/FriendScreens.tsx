@@ -1,4 +1,5 @@
 import { RulesForm, rulesSummary } from "../components/RulesForm";
+import { MULTIPLAYER_AVAILABLE } from "../config";
 import type { FriendRules } from "../types";
 
 export function FriendPasswordScreen({
@@ -18,6 +19,9 @@ export function FriendPasswordScreen({
     <div className="container">
       <h2>フレンド対戦</h2>
       <p className="hint">4桁のパスワードを相手と揃えてください</p>
+      {!MULTIPLAYER_AVAILABLE && (
+        <p className="message">対戦サーバーが未接続のため、ルーム参加はいま利用できません。</p>
+      )}
       <input
         className="pwd-input"
         type="text"
@@ -25,10 +29,16 @@ export function FriendPasswordScreen({
         maxLength={4}
         placeholder="0000"
         value={password}
+        disabled={!MULTIPLAYER_AVAILABLE}
         onChange={(e) => onPasswordChange(e.target.value)}
       />
       <div className="controls">
-        <button type="button" className="btn btn-primary" onClick={onJoin}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={!MULTIPLAYER_AVAILABLE}
+          onClick={onJoin}
+        >
           参加
         </button>
         <button type="button" className="btn btn-back" onClick={onBack}>

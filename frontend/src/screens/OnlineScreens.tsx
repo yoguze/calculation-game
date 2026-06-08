@@ -1,3 +1,4 @@
+import { MULTIPLAYER_AVAILABLE } from "../config";
 import { ONLINE_MODES, type OnlineModeId } from "../constants/labels";
 
 export function OnlineSelectScreen({
@@ -11,9 +12,18 @@ export function OnlineSelectScreen({
     <div className="container">
       <h2>オンライン対戦</h2>
       <p className="hint">200固定・3問・数字は最大5個まで・まとめて提出（時間切れは入力中の式を採点）</p>
+      {!MULTIPLAYER_AVAILABLE && (
+        <p className="message">対戦サーバーが未接続のため、マッチングはいま利用できません。</p>
+      )}
       <div className="menu-list">
         {(Object.keys(ONLINE_MODES) as OnlineModeId[]).map((mode) => (
-          <button key={mode} type="button" className="menu-btn online" onClick={() => onSelect(mode)}>
+          <button
+            key={mode}
+            type="button"
+            className="menu-btn online"
+            disabled={!MULTIPLAYER_AVAILABLE}
+            onClick={() => onSelect(mode)}
+          >
             {ONLINE_MODES[mode].label}（{ONLINE_MODES[mode].duration}秒）
           </button>
         ))}

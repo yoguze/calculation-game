@@ -108,6 +108,7 @@ h2 { margin: 0 0 14px; font-size: 22px; }
 .menu-btn.solo { background: var(--primary); }
 .menu-btn.online { background: var(--online); }
 .menu-btn.friend { background: var(--friend); }
+.menu-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .controls {
   margin-top: 16px;

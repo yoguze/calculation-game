@@ -6,10 +6,10 @@ export const MULTIPLAYER_URL = (
 )?.replace(/\/$/, "") ?? "";
 
 /**
+ * マルチプレイサーバーに接続できるか（UI表示とは別）。
  * 開発時は Vite プロキシ経由でローカル Flask に接続。
- * 本番静的ホスティングでは VITE_MULTIPLAYER_URL が必要。
  */
-export const MULTIPLAYER_ENABLED = Boolean(MULTIPLAYER_URL || import.meta.env.DEV);
+export const MULTIPLAYER_AVAILABLE = Boolean(MULTIPLAYER_URL || import.meta.env.DEV);
 
 export function createMultiplayerSocket(): Socket {
   return io(MULTIPLAYER_URL || undefined, {
