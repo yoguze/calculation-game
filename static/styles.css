@@ -1,0 +1,144 @@
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  margin: 0;
+  color: #222;
+  background: #f6f7fb;
+}
+.container {
+  max-width: 560px;
+  margin: 4vh auto;
+  background: #fff;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  text-align: center;
+}
+.container-wide { max-width: 760px; }
+h1 { margin: 0 0 6px; font-size: 28px; }
+h2 { margin: 0 0 14px; font-size: 22px; }
+h3.section-label { margin: 14px 0 8px; font-size: 14px; color: #555; }
+.subtitle, .hint { margin: 0 0 16px; color: #666; font-size: 14px; }
+.timer-line { font-size: 20px; font-weight: 700; color: #d32f2f; margin: 8px 0; }
+.controls { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.sub-controls { margin-top: 10px; }
+
+.menu-list { display: flex; flex-direction: column; gap: 12px; }
+.menu-btn {
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  color: #fff;
+}
+.menu-btn.solo { background: #4753ff; }
+.menu-btn.online { background: #00897b; }
+.menu-btn.friend { background: #e65100; }
+
+.primary-btn { background: #4753ff; color: #fff; padding: 12px 22px; font-size: 17px; border: 0; border-radius: 12px; cursor: pointer; }
+.back-btn, .sub-btn { background: #ff7f50; color: #fff; padding: 12px 18px; font-size: 16px; border: 0; border-radius: 12px; cursor: pointer; }
+.sub-btn { background: #78909c; }
+
+.badge {
+  display: inline-block;
+  font-size: 13px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef0ff;
+  color: #4753ff;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+  max-width: 320px;
+  margin: 0 auto 16px;
+}
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.form-grid input, .form-grid select {
+  padding: 8px 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.pwd-input {
+  font-size: 28px;
+  letter-spacing: 8px;
+  text-align: center;
+  width: 160px;
+  padding: 10px;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+}
+
+.rules-box {
+  text-align: left;
+  background: #f8f9ff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  line-height: 1.8;
+}
+
+.problems-container { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+.problem-panel {
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.problem-panel.active { border-color: #4753ff; background: #fafbff; }
+.problem-panel h4 { margin: 0 0 8px; font-size: 15px; }
+.problem-panel .nums { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.num-btn {
+  padding: 6px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid #4753ff;
+  border-radius: 8px;
+  background: #f0f2ff;
+  cursor: pointer;
+}
+.num-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.expr-box {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px dashed #bbb;
+  border-radius: 8px;
+  font-family: Consolas, monospace;
+  font-size: 18px;
+  background: #fff;
+  word-break: break-all;
+}
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.op-btn {
+  padding: 8px 14px;
+  font-size: 17px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+#resultMessage {
+  white-space: pre-line;
+  line-height: 1.6;
+  text-align: left;
+  max-width: 640px;
+  margin: 0 auto 12px;
+  font-size: 14px;
+}
+.message { margin-top: 10px; min-height: 22px; color: #555; font-size: 14px; }
+.screen.hidden { display: none; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 520px) {
+  .container-wide { padding: 16px 10px; }
+}

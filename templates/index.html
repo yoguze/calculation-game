@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>200計算ゲーム</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <!-- タイトル -->
+  <div id="titleScreen" class="container screen">
+    <h1>200計算ゲーム</h1>
+    <p class="subtitle">10個の数字で目標値に近づけ！</p>
+    <div class="menu-list">
+      <button id="goSoloBtn" type="button" class="menu-btn solo">1人プレイ</button>
+      <button id="goOnlineBtn" type="button" class="menu-btn online">オンライン対戦</button>
+      <button id="goFriendBtn" type="button" class="menu-btn friend">フレンド対戦</button>
+    </div>
+  </div>
+
+  <!-- 1人: 設定 -->
+  <div id="soloSettingsScreen" class="container screen hidden">
+    <h2>1人プレイ 設定</h2>
+    <div class="form-grid">
+      <label>問題数 <input id="soloProblems" type="number" min="1" max="5" value="3"></label>
+      <label>制限時間（秒） <input id="soloDuration" type="number" min="5" max="300" value="30"></label>
+      <label>目標値 <input id="soloTarget" type="number" min="10" max="2000" value="200"></label>
+      <label>CPU
+        <select id="soloCpu">
+          <option value="weak">弱</option>
+          <option value="medium" selected>中</option>
+          <option value="strong">強</option>
+        </select>
+      </label>
+    </div>
+    <div class="controls">
+      <button id="soloStartBtn" type="button" class="primary-btn">開始</button>
+      <button id="soloSettingsBackBtn" type="button" class="back-btn">戻る</button>
+    </div>
+  </div>
+
+  <!-- オンライン: 難易度 -->
+  <div id="onlineSelectScreen" class="container screen hidden">
+    <h2>オンライン対戦</h2>
+    <p class="hint">200固定・3問・まとめて提出</p>
+    <div class="menu-list">
+      <button type="button" class="menu-btn online" data-mode="quick">すぱっと（10秒）</button>
+      <button type="button" class="menu-btn online" data-mode="normal">ふつう（30秒）</button>
+      <button type="button" class="menu-btn online" data-mode="slow">じっくり（60秒）</button>
+    </div>
+    <div class="controls">
+      <button id="onlineSelectBackBtn" type="button" class="back-btn">戻る</button>
+    </div>
+  </div>
+
+  <!-- オンライン: マッチング -->
+  <div id="matchScreen" class="container screen hidden">
+    <h2>オンライン <span id="matchModeLabel" class="badge">ふつう</span></h2>
+    <p id="matchMessage">対戦相手を探しています…</p>
+    <p>スタートまで: <span id="matchCountdown">12</span> 秒</p>
+    <div class="controls">
+      <button id="matchBackBtn" type="button" class="back-btn">戻る</button>
+    </div>
+  </div>
+
+  <!-- フレンド: パスワード -->
+  <div id="friendPasswordScreen" class="container screen hidden">
+    <h2>フレンド対戦</h2>
+    <p class="hint">4桁のパスワードを相手と揃えてください</p>
+    <input id="friendPassword" class="pwd-input" type="text" inputmode="numeric" maxlength="4" placeholder="0000">
+    <div class="controls">
+      <button id="friendJoinBtn" type="button" class="primary-btn">参加</button>
+      <button id="friendPasswordBackBtn" type="button" class="back-btn">戻る</button>
+    </div>
+    <p id="friendPasswordMsg" class="message"></p>
+  </div>
+
+  <!-- フレンド: ホスト設定 -->
+  <div id="friendHostRulesScreen" class="container screen hidden">
+    <h2>ルール設定（ホスト）</h2>
+    <div class="form-grid">
+      <label>問題数 <input id="hostProblems" type="number" min="1" max="5" value="3"></label>
+      <label>制限時間（秒） <input id="hostDuration" type="number" min="5" max="300" value="30"></label>
+      <label>目標値 <input id="hostTarget" type="number" min="10" max="2000" value="200"></label>
+    </div>
+    <div class="controls">
+      <button id="hostSendRulesBtn" type="button" class="primary-btn">ルールを送る</button>
+    </div>
+    <p id="hostRulesMsg" class="message"></p>
+  </div>
+
+  <!-- フレンド: ゲスト承認 -->
+  <div id="friendReviewScreen" class="container screen hidden">
+    <h2>ルール確認</h2>
+    <div id="reviewRulesBox" class="rules-box"></div>
+    <div class="controls">
+      <button id="guestApproveBtn" type="button" class="primary-btn">承認する</button>
+    </div>
+    <p id="friendReviewMsg" class="message"></p>
+  </div>
+
+  <!-- フレンド: 開始待ち -->
+  <div id="readyScreen" class="container screen hidden">
+    <h2>プレイ開始！</h2>
+    <div id="readyRulesBox" class="rules-box"></div>
+    <p id="readyStatus" class="message">開始ボタンを押してください</p>
+    <div class="controls">
+      <button id="readyStartBtn" type="button" class="primary-btn">開始</button>
+    </div>
+  </div>
+
+  <!-- ゲーム -->
+  <div id="gameScreen" class="container container-wide screen hidden">
+    <h2>
+      <span id="gameTitle">ゲーム</span>
+      <span id="gameTargetBadge" class="badge">200</span>
+    </h2>
+    <p class="timer-line">残り時間: <span id="timeLeft">30</span> 秒</p>
+    <p id="gameHint" class="hint"></p>
+
+    <div id="problemsContainer" class="problems-container"></div>
+
+    <h3 class="section-label">演算子（選択中の問題に追加）</h3>
+    <div class="btn-row">
+      <button type="button" class="op-btn" data-op="(">(</button>
+      <button type="button" class="op-btn" data-op=")">)</button>
+      <button type="button" class="op-btn" data-op="+">+</button>
+      <button type="button" class="op-btn" data-op="-">-</button>
+      <button type="button" class="op-btn" data-op="*">*</button>
+      <button type="button" class="op-btn" data-op="/">/</button>
+    </div>
+    <div class="controls">
+      <button id="undoBtn" type="button" class="sub-btn">1文字戻す</button>
+      <button id="clearBtn" type="button" class="sub-btn">式クリア</button>
+      <button id="submitBtn" type="button" class="primary-btn">まとめて提出</button>
+    </div>
+    <div class="controls sub-controls">
+      <button id="quitBtn" type="button" class="back-btn">やめる</button>
+    </div>
+    <p id="gameMessage" class="message"></p>
+  </div>
+
+  <!-- 結果 -->
+  <div id="resultScreen" class="container container-wide screen hidden">
+    <h2>結果</h2>
+    <p id="resultMessage"></p>
+    <div class="controls">
+      <button id="retryBtn" type="button" class="primary-btn">もう一度</button>
+      <button id="backToTitleBtn" type="button" class="back-btn">タイトルに戻る</button>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
