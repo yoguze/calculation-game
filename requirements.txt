@@ -1,4 +1,3 @@
 Flask>=3.0,<4
 flask-socketio>=5.3,<6
-eventlet>=0.35.2,<0.38
 gunicorn>=22.0,<24

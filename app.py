@@ -5,9 +5,6 @@
 REST エンドポイント（/start_game 等）は後方互換のため残している。
 """
 
-import eventlet
-eventlet.monkey_patch()
-
 import os
 import re
 import secrets
@@ -37,7 +34,7 @@ _allowed_origins = os.environ.get(
 )
 socketio = SocketIO(
     app,
-    async_mode="eventlet",
+    async_mode="threading",
     cors_allowed_origins=[o.strip() for o in _allowed_origins.split(",") if o.strip()] or "*",
 )
 
