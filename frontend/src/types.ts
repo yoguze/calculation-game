@@ -25,7 +25,6 @@ export type SoloSettings = {
   problems: number;
   duration: number;
   target: number;
-  cpu_level: "weak" | "medium" | "strong";
 } & GameRules;
 
 export type FriendRules = {
@@ -59,11 +58,9 @@ export type GradeResult = {
 
 export type SoloResult = {
   target: number;
-  winner: "player" | "cpu" | "draw";
   player_total_diff: number;
-  cpu_total_diff: number;
   player_results: GradeResult[];
-  cpu_results: GradeResult[];
+  player_submitted_at_sec?: number;
   timed_out?: boolean;
   rules?: GameRules;
 };

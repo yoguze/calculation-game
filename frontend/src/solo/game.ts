@@ -1,18 +1,13 @@
 import type { ProblemState, SoloResult, SoloSettings } from "../types";
-import {
-  cpuGradeRounds,
-  generateRounds,
-  gradeExpressions,
-  normalizeRules,
-} from "./engine";
+import { generateRounds, gradePlayerExpressions, normalizeRules } from "./engine/index";
 
+/** ブラウザ内で完結するソロゲームのセッション */
 export type SoloSession = {
   startedAt: number;
   duration: number;
   target: number;
   rounds: number[][];
   rules: ReturnType<typeof normalizeRules>;
-  cpuLevel: SoloSettings["cpu_level"];
   problems: number;
 };
 
@@ -24,54 +19,42 @@ export function createSoloSession(settings: SoloSettings): SoloSession {
     target: settings.target,
     rounds: generateRounds(settings.problems, rules),
     rules,
-    cpuLevel: settings.cpu_level,
     problems: settings.problems,
   };
 }
 
 export function getSoloTimeLeft(session: SoloSession): number {
-  const elapsed = Math.floor((Date.now() - session.startedAt) / 1000);
-  return Math.max(0, session.duration - elapsed);
+  const elapsedSec = getElapsedSec(session);
+  return Math.max(0, session.duration - elapsedSec);
+}
+
+export function getElapsedSec(session: SoloSession, at = Date.now()): number {
+  return Math.min(session.duration, Math.floor((at - session.startedAt) / 1000));
 }
 
 export function finishSolo(
   session: SoloSession,
   problemStates: ProblemState[],
-  timedOut = false
+  timedOut = false,
+  playerSubmittedAtSec?: number
 ): SoloResult {
-  const expressions = problemStates.map((s) => s.expression);
-  const usedIndices = problemStates.map((s) => s.usedIdx);
-  const { total: playerTotal, results: playerResults } = gradeExpressions(
+  const expressions = problemStates.map((state) => state.expression);
+  const usedIndices = problemStates.map((state) => state.usedIdx);
+  const playerSec = playerSubmittedAtSec ?? getElapsedSec(session);
+
+  const { totalDiff: playerTotal, results: playerResults } = gradePlayerExpressions(
     expressions,
     usedIndices,
     session.rounds,
     session.target,
     session.rules
   );
-  const { total: cpuTotal, results: cpuResults } = cpuGradeRounds(
-    session.rounds,
-    session.target,
-    session.cpuLevel,
-    session.rules
-  );
-
-  let winner: SoloResult["winner"];
-  if (playerTotal < cpuTotal) winner = "player";
-  else if (playerTotal > cpuTotal) winner = "cpu";
-  else winner = "draw";
 
   return {
     target: session.target,
-    winner,
     player_total_diff: playerTotal,
-    cpu_total_diff: cpuTotal,
     player_results: playerResults,
-    cpu_results: cpuResults.map((r) => ({
-      expr: r.expr,
-      value: r.value,
-      diff: r.diff,
-      valid: true,
-    })),
+    player_submitted_at_sec: playerSec,
     timed_out: timedOut,
     rules: session.rules,
   };

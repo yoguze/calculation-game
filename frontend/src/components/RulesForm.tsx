@@ -50,10 +50,10 @@ export function RulesForm({ rules, onChange }: Props) {
         />
       </label>
       <label>
-        使う数字の個数
+        使える数字の最大数
         <input
           type="number"
-          min={2}
+          min={1}
           max={rules.pool_size}
           value={rules.numbers_to_use}
           onChange={(e) => set("numbers_to_use", Number(e.target.value))}
@@ -87,7 +87,7 @@ export function rulesSummary(rules: GameRules, extra?: { problems?: number; dura
   if (extra?.duration !== undefined) lines.push(`制限時間: ${extra.duration}秒`);
   if (extra?.target !== undefined) lines.push(`目標値: ${extra.target}`);
   lines.push(`数字範囲: ${rules.num_lo}〜${rules.num_hi}`);
-  lines.push(`提示数字: ${rules.pool_size}個 / 使用: ${rules.numbers_to_use}個`);
+  lines.push(`提示数字: ${rules.pool_size}個 / 使用: 最大${rules.numbers_to_use}個`);
   const ops = ["＋", "－"];
   if (rules.allow_mul) ops.push("×");
   if (rules.allow_div) ops.push("÷");
