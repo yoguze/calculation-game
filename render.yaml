@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt && cd frontend && npm install && npm run build
-    startCommand: python app.py
+    startCommand: gunicorn --worker-class gthread --threads 100 -w 1 --bind 0.0.0.0:$PORT app:app
     envVars:
       - key: NODE_VERSION
         value: "20"
