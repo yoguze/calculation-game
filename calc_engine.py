@@ -1,3 +1,17 @@
+"""
+200計算ゲームのコアロジック（サーバー側）。
+
+責務:
+  - 問題生成
+  - 四則演算式の安全な評価
+  - ルール検証（使用数字・演算子制限）
+  - CPU 思考（ビームサーチ + ランダム探索）
+  - 採点
+
+フロントの solo/engine と同等のルールをサーバーでも適用し、
+マルチプレイ時の公正な採点に使う。
+"""
+
 import ast
 import operator
 import random
@@ -39,7 +53,7 @@ def normalize_rules(rules=None):
     base["num_lo"] = max(1, int(base["num_lo"]))
     base["num_hi"] = max(base["num_lo"], int(base["num_hi"]))
     base["pool_size"] = max(6, min(20, int(base["pool_size"])))
-    base["numbers_to_use"] = max(2, min(base["pool_size"], int(base["numbers_to_use"])))
+    base["numbers_to_use"] = max(1, min(base["pool_size"], int(base["numbers_to_use"])))
     base["allow_mul"] = bool(base["allow_mul"])
     base["allow_div"] = bool(base["allow_div"])
     return base
@@ -134,12 +148,12 @@ def extract_numbers_from_expr(expr):
 
 def validate_used_indices(used_indices, numbers, rules=None):
     cfg = normalize_rules(rules)
-    need = cfg["numbers_to_use"]
+    max_count = cfg["numbers_to_use"]
     errors = []
     indices = used_indices or []
 
-    if len(indices) != need:
-        errors.append(f"数字は{need}個選ぶ必要があります（現在{len(indices)}個）")
+    if len(indices) > max_count:
+        errors.append(f"数字は最大{max_count}個まで使えます（現在{len(indices)}個）")
 
     if len(set(indices)) != len(indices):
         errors.append("同じ数字ボタンは2回使えません")
@@ -173,6 +187,9 @@ def validate_expression_rules(expr, numbers, used_indices, rules=None):
         if isinstance(i, int) and 0 <= i < len(numbers)
     ]
     expected_nums = [numbers[i] for i in valid_indices]
+
+    if len(expr_nums) > cfg["numbers_to_use"]:
+        errors.append(f"数字は最大{cfg['numbers_to_use']}個まで使えます")
 
     if Counter(expr_nums) != Counter(expected_nums):
         errors.append("式の数字が選んだ数字と一致しません")
@@ -213,11 +230,6 @@ def preview_expression(expr, numbers, used_indices, target=DEFAULT_TARGET, rules
         i for i in (used_indices or [])
         if isinstance(i, int) and 0 <= i < len(numbers)
     ]
-    need = cfg["numbers_to_use"]
-    remaining = need - len(valid_indices)
-    if remaining > 0:
-        errors.append(f"数字をあと{remaining}個選んでください")
-
     unused_labels = []
     for i in range(len(numbers)):
         if i not in set(valid_indices):
@@ -369,7 +381,7 @@ def grade_expressions(expressions, used_indices_list, rounds, target, rules=None
     for i, numbers in enumerate(rounds):
         expr = (expressions[i] if i < len(expressions) else "").strip()
         used = used_indices_list[i] if i < len(used_indices_list) else []
-        errors = validate_expression_rules(expr, numbers, used, cfg) if expr else ["未提出"]
+        errors = validate_expression_rules(expr, numbers, used, cfg) if expr else ["式なし"]
 
         if not expr or errors:
             diff = diff_from_target(0, target)
@@ -378,7 +390,7 @@ def grade_expressions(expressions, used_indices_list, rounds, target, rules=None
                 "value": None,
                 "diff": diff,
                 "valid": False,
-                "errors": errors if expr else ["未提出"],
+                "errors": errors if expr else ["式なし"],
             })
             total_diff += diff
             continue
@@ -397,11 +409,24 @@ def grade_expressions(expressions, used_indices_list, rounds, target, rules=None
     return total_diff, results
 
 
-def cpu_grade_rounds(rounds, target, cpu_level, rules=None):
+def cpu_grade_rounds(rounds, target, cpu_level, rules=None, started_at=None):
+    import time
+
+    started = started_at or time.time()
     cpu_results = []
     total = 0
-    for numbers in rounds:
+    for i, numbers in enumerate(rounds):
+        t0 = time.perf_counter()
         cpu = beam_search_cpu(numbers, target, cpu_level, rules)
+        solve_ms = (time.perf_counter() - t0) * 1000
+        elapsed_sec = int(time.time() - started)
         cpu_results.append(cpu)
         total += cpu["diff"]
+        print(
+            f"[CPU] 問{i + 1}: {cpu['expr']} = {cpu['value']}（差 {cpu['diff']}）"
+            f" — {solve_ms:.0f} ms @ {elapsed_sec}秒",
+            flush=True,
+        )
+    submitted_at_sec = int(time.time() - started)
+    print(f"[CPU] 提出: 開始から {submitted_at_sec} 秒 / 合計差 {total}", flush=True)
     return total, cpu_results

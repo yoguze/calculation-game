@@ -1,3 +1,10 @@
+"""
+マルチプレイ用 API サーバー。
+
+ソロモードはフロントエンド完結のため、本サーバーの主役は Socket.IO による対戦である。
+REST エンドポイント（/start_game 等）は後方互換のため残している。
+"""
+
 import eventlet
 eventlet.monkey_patch()
 
@@ -62,7 +69,7 @@ NUM_LO_MIN = 1
 NUM_HI_MAX = 99
 POOL_MIN = 6
 POOL_MAX = 20
-NUMBERS_TO_USE_MIN = 2
+NUMBERS_TO_USE_MIN = 1
 NUMBERS_TO_USE_MAX = 10
 
 FRONTEND_DIST = os.path.join(os.path.dirname(__file__), "frontend", "dist")
@@ -270,7 +277,9 @@ def submit_solo():
     player_total, player_results = grade_expressions(
         expressions, used_indices_list, rounds, target, rules
     )
-    cpu_total, cpu_results = cpu_grade_rounds(rounds, target, game["cpu_level"], rules)
+    cpu_total, cpu_results = cpu_grade_rounds(
+        rounds, target, game["cpu_level"], rules, started_at=game["start"]
+    )
 
     if player_total < cpu_total:
         winner = "player"
@@ -303,7 +312,9 @@ def timeout_solo():
     rounds = game["rounds"]
     rules = game["rules"]
     player_total, player_results = grade_expressions([], [], rounds, target, rules)
-    cpu_total, cpu_results = cpu_grade_rounds(rounds, target, game["cpu_level"], rules)
+    cpu_total, cpu_results = cpu_grade_rounds(
+        rounds, target, game["cpu_level"], rules, started_at=game["start"]
+    )
 
     return jsonify({
         "target": target,
