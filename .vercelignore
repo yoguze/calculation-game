@@ -3,3 +3,5 @@ calc_engine.py
 requirements.txt
 templates/
 static/
+.venv/
+__pycache__/
